@@ -1,0 +1,26 @@
+header {
+    padding: 40px;
+    border-bottom: 5px solid;
+    border-color: gold;
+    height: 10vh;
+    background: lightcyan;
+}
+section {
+    margin: 0 20px;
+    padding: 20px 0;
+    border-bottom: 2px solid;
+    display: flex;
+    flex-wrap: nowrap;
+}
+section div {
+    float:left;
+    width: 80%
+}
+.title {
+    width: 20%;
+    font-style: italic;
+    font-weight: bold;
+}
+.skill {
+    width: 33%;
+}
