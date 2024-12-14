@@ -1,162 +1,155 @@
 import React, { Component } from "react";
 import * as d3 from "d3";
+import cloud from 'd3-cloud';
 
 class WordCloudChild extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      wordFrequency: [],
       selectedCategory: "Actors",
     };
   }
 
   componentDidMount() {
-    this.updateWordFrequency();
-    this.renderWordCloud();
+    this.updateWordFrequencies();
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.allActors !== this.props.allActors ||
-      prevProps.allDirectors !== this.props.allDirectors ||
-      prevState.selectedCategory !== this.state.selectedCategory
-    ) {
-      this.updateWordFrequency();
-      this.renderWordCloud();
-    }
+  componentDidUpdate() {
+    this.updateWordFrequencies();
   }
 
-  updateWordFrequency = () => {
-    const { allActors, allDirectors } = this.props;
+  updateWordFrequencies = () => {
+    const filterWords = ["a", "of", "to", "the", "on", "is", "and", "in", "his","her","who","that","A","with","their","for","he","she","an","from","by","The","as"]
+    const { allActors, allDirectors, allDescriptions } = this.props;
     const { selectedCategory } = this.state;
 
-    let words = [];
-
-    if (selectedCategory === "Actors") {
-      words = allActors.split(",").map((actor) => actor.trim());
-    } else if (selectedCategory === "Directors") {
-      words = allDirectors.split(",").map((director) => director.trim());
+    let words;
+    let wordFrequencies;
+    let combinedWords;
+    if (selectedCategory === 'Actors') {
+      words = allActors.split(',');
+      combinedWords = words.map(word => word.trim()).filter(word => word);
+      wordFrequencies = Array.from(
+        combinedWords.reduce((map, word) => map.set(word, (map.get(word) || 0) + 1), new Map()),
+        ([text, size]) => ({ text, size: size * 8 - 70 }) // Scale frequency to font size
+      );
+    } else if (selectedCategory === 'Directors') {
+      words = allDirectors.split(',');
+      combinedWords = words.map(word => word.trim()).filter(word => word);
+      wordFrequencies = Array.from(
+        combinedWords.reduce((map, word) => map.set(word, (map.get(word) || 0) + 1), new Map()),
+        ([text, size]) => ({ text, size: size * 10 - 30 }) // Scale frequency to font size
+      );
+    } else {
+      words = allDescriptions.trim(',').split(' ');
+      combinedWords = words.map(word => word.trim()).filter(word => word).filter(word => !filterWords.includes(word));
+      wordFrequencies = Array.from(
+        combinedWords.reduce((map, word) => map.set(word, (map.get(word) || 0) + 1), new Map()),
+        ([text, size]) => ({ text, size: size / 2 }) // Scale frequency to font size
+      );
     }
 
-    const wordFrequency = Object.entries(
-      words.reduce((freq, word) => {
-        if (word) {
-          freq[word] = (freq[word] || 0) + 1;
-        }
-        return freq;
-      }, {})
-    );
-
-    this.setState({ wordFrequency });
+    wordFrequencies.sort((a, b) => b.size - a.size)
+    wordFrequencies = wordFrequencies.slice(0,30)
+    console.log(wordFrequencies)
+    this.generateWordCloud(wordFrequencies);
   };
 
-  renderWordCloud() {
-    const data = this.state.wordFrequency.sort((a, b) => b[1] - a[1]).slice(0, 10);
-    const svg = d3.select(".wordcloud-svg");
-    const containerWidth = 600;
-    const containerHeight = 130;
-
-    svg.selectAll("*").remove();
-    svg.attr("width", containerWidth).attr("height", containerHeight);
-
-    if (data.length === 0) {
-      return;
-    }
-
-    const fontSizeScale = d3
-      .scaleLinear()
-      .domain([d3.min(data, (d) => d[1]), d3.max(data, (d) => d[1])])
-      .range([10, 40]);
-
-    let currentXPosition = 20;
-    let currentYPosition = containerHeight / 2;
-    const textElements = [];
-
-    data.forEach((d) => {
-      const textWidth = fontSizeScale(d[1]) * d[0].length * 0.6;
-
-      if (currentXPosition + textWidth > containerWidth - 20) {
-        currentXPosition = 20;
-        currentYPosition += fontSizeScale(d[1]) + 10;
-      }
-
-      textElements.push({
-        word: d[0],
-        frequency: d[1],
-        fontSize: fontSizeScale(d[1]),
-        xPosition: currentXPosition,
-        yPosition: currentYPosition,
-      });
-      currentXPosition += textWidth + 20;
-    });
-
-    const words = svg.selectAll("text").data(textElements, (d) => d.word);
-
-    words
-      .transition()
-      .duration(1500)
-      .attr("x", (d) => d.xPosition)
-      .attr("y", (d) => d.yPosition)
-      .style("font-size", (d) => `${d.fontSize}px`);
-
-    words
-      .enter()
-      .append("text")
-      .attr("x", (d) => d.xPosition)
-      .attr("y", (d) => d.yPosition)
-      .attr("fill", "black")
-      .style("font-size", "1px")
-      .text((d) => d.word)
-      .transition()
-      .duration(1500)
-      .ease(d3.easeLinear)
-      .style("font-size", (d) => `${d.fontSize}px`);
-
-    words.exit().remove();
-  }
-
   handleCategoryChange = (event) => {
-    this.setState({ selectedCategory: event.target.value });
+    this.setState({ selectedCategory: event.target.value }, this.updateWordFrequencies);
+  };
+
+  generateWordCloud = (frequencies) => {
+    d3.select(this.refs.wordCloud).selectAll('*').remove(); // Clear previous SVG
+    var width = d3.select("#cloudContainer").node().getBoundingClientRect().width - 50
+    var height = d3.select("#cloudContainer").node().getBoundingClientRect().height - 100
+
+    const layout = cloud()
+      .size([width, height]) // Width and height of the word cloud
+      .words(frequencies)
+      .padding(5) // Space between words
+      .rotate(() => 0) // No rotation for this example
+      .fontSize(d => d.size) // Font size is based on the size attribute
+      .spiral('archimedean') // Use archimedean spiral
+      .on('end', this.draw);
+
+    layout.start();
+  };
+
+  draw = (words) => {
+    var width = d3.select("#cloudContainer").node().getBoundingClientRect().width - 40
+    var height = d3.select("#cloudContainer").node().getBoundingClientRect().height - 100
+    const svg = d3.select(this.refs.wordCloud)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .append('g')
+      .attr('transform', 'translate('+width/2+20+','+height/2+20+')');
+
+    svg.selectAll('text')
+      .data(words)
+      .enter()
+      .append('text')
+      .style('font-size', d => `${d.size}px`)
+      .style('fill', () => d3.schemeCategory10[Math.floor(Math.random() * 10)])
+      .attr('text-anchor', 'middle')
+      .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(${d.rotate})`)
+      .text(d => d.text);
+
+    this.applyOvalMask(svg);
+  };
+
+  applyOvalMask = (svg) => {
+    const defs = svg.append('defs');
+    var width = d3.select("#cloudContainer").node().getBoundingClientRect().width - 40
+    var height = d3.select("#cloudContainer").node().getBoundingClientRect().height - 100
+
+    defs.append('clipPath')
+      .attr('id', 'oval-mask')
+      .append('ellipse')
+      .attr('cx', width/2) // Center X
+      .attr('cy', height/2) // Center Y
+      .attr('rx', 350) // Horizontal radius
+      .attr('ry', 150); // Vertical radius
+
+    svg.select('g')
+      .attr('clip-path', 'url(#oval-mask)');
   };
 
   render() {
     return (
-      <div
-        className="wordcloud-container"
-        style={{
-          marginTop: "-30px",
-          padding: "5px",
-          borderRadius: "5px",
-          boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-          backgroundColor: "#f9f9f9",
-          textAlign: "center",
-          maxWidth: "850px",
-        }}
-      >
-        <h2>Word Cloud</h2>
-        <div className="controls">
+      <div style={{ width: "100%", height:"30%"}} id="cloudContainer">
+        
+        <div style={{display:"flex",justifyContent:"center"}}>
           <label>
             <input
               type="radio"
-              value="Directors"
-              checked={this.state.selectedCategory === "Directors"}
+              value="Actors"
+              checked={this.state.selectedCategory === 'Actors'}
               onChange={this.handleCategoryChange}
             />
             Actors
           </label>
-          <label style={{ marginLeft: "20px" }}>
+          <label>
             <input
               type="radio"
-              value="Actors"
-              checked={this.state.selectedCategory === "Actors"}
+              value="Directors"
+              checked={this.state.selectedCategory === 'Directors'}
               onChange={this.handleCategoryChange}
             />
             Directors
           </label>
+          <label>
+            <input
+              type="radio"
+              value="Descriptions"
+              checked={this.state.selectedCategory === 'Descriptions'}
+              onChange={this.handleCategoryChange}
+            />
+            Descriptions
+          </label>
         </div>
-        <div>
-          <svg className="wordcloud-svg"></svg>
-        </div>
+        <div ref="wordCloud" style={{padding:20}} />
       </div>
     );
   }

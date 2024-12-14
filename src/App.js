@@ -5,6 +5,7 @@ import { sliderBottom } from "d3-simple-slider";
 import FileUpload from "./js/FileUpload";
 import ScatterPlotMatrixChild from "./js/ScatterPlotMatrixChild";
 import WordCloudChild from "./js/WordCloudChild";
+import BarChartChild from "./js/BarChartChild";
 
 class App extends Component {
   constructor(props) {
@@ -15,27 +16,8 @@ class App extends Component {
       filteredData: [],
       allActors: "",
       allDirectors: "",
+      allDescriptions: "",
     };
-  }
-
-  componentDidMount() {
-    // Load data
-    d3.csv(imdbDataset).then((data) => {
-      const parsedData = data.map((d) => ({
-        Rank: +d.Rank,
-        Votes: +d.Votes,
-        Rating: +d.Rating,
-        "Revenue (Millions)": +d["Revenue (Millions)"],
-        Year: +d.Year,
-        Title: d.Title,
-        Director: d.Director,
-        Actors: d.Actors,
-      }));
-      this.setState({ data: parsedData }, () => {
-        this.updateFilteredData();
-        this.concatenateNames();
-      });
-    });
   }
 
   updateFilteredData = () => {
@@ -62,65 +44,75 @@ class App extends Component {
       .filter((director) => director !== undefined && director !== "")
       .join(", ");
 
-    this.setState({ allActors, allDirectors });
+    const allDescriptions = data
+      .map((d) => d.Description)
+      .filter((desc) => desc !== undefined && desc !== "")
+      .join(", ");
+
+    this.setState({ allActors, allDirectors, allDescriptions});
   };
 
   handleSliderChange = (val) => {
     this.setState({ yearRange: val }, this.updateFilteredData);
   };
 
-  handleFileUpload = (uploadedData, headers) => {
-    this.setState({data: uploadedData}, () => {this.updateFilteredData();
+  set_data = (uploadedData) => {
+    this.setState({data: uploadedData}, () => {
+      this.updateFilteredData();
       this.concatenateNames();
     })
   }
 
   render() {
-    const { filteredData, allActors, allDirectors } = this.state;
+    const { filteredData, allActors, allDirectors, allDescriptions, data } = this.state;
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          height: "100vh",
-          overflow: "hidden",
-          alignItems: "flex-start",
-        }}
-      >
-        <div id = "scplotdiv"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            flexGrow: 1,
-            overflow: "auto",
-            width: "60%",
-            height: "100%",
-          }}
-        >
-          <h1 style={{ textAlign: "center" }}>Scatter Plot Matrix</h1>
-          <ScatterPlotMatrixChild data={filteredData} />
-          <div style={{ marginTop: "20px", flexShrink: 0 }}>
-            <h3 style = {{textAlign: "center"}}>Filter by Year</h3>
-            <svg className="slider-range" width="500" height="100" transform="translate(80,0)"></svg>
-          </div>
-        </div>
-
-        {}
+      <div>
+      <FileUpload set_data={this.set_data}></FileUpload>
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "40%",
-            height: "100%"
+            justifyContent: "space-around",
+            height: "90vh",
+            overflow: "hidden",
+            alignItems: "flex-start",
           }}
         >
-          <FileUpload onFileUpload = {this.handleFileUpload}></FileUpload>
-          <WordCloudChild allActors={allActors} allDirectors={allDirectors} />
+          <div style={{height: "90vh", display: "flex", flexDirection: "column", justifyContent: "center"}}>
+            <h3 style={{transform: "rotate(-90deg) translate(50%, 0)", textAlign: "center"}}>Scatter Plot Matrix</h3>
+          </div>
+          <div id = "scplotdiv"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              flexGrow: 1,
+              overflow: "auto",
+              width: "55%",
+              height: "100%",
+            }}
+          >
+            
+            <ScatterPlotMatrixChild data={filteredData} />
+            <div style={{ marginTop: "5px", flexShrink: 0 }}>
+              <h3 style = {{textAlign: "center", margin:0}}>Filter by Year</h3>
+              <svg className="slider-range" width="500" height="100" transform="translate(80,0)"></svg>
+            </div>
+          </div>
+          <div
+            style={{
+              textAlign: "center",
+              width: "50%",
+              height: "100%"
+            }}
+          >
+            <h2>Movie Keyword Wordcloud</h2>
+            <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions}/>
+            <h2 style={{margin: 0}}>Average Metascore by Genre</h2>
+            <BarChartChild data={data}/>
+          </div>
         </div>
       </div>
+      
     );
   }
 

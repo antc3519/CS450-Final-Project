@@ -180,7 +180,7 @@ class ScatterPlotMatrixChild extends Component {
     .attr("x", 0).attr("y", height/2).attr('transform',`rotate(-90)`)
     */
 
-    const corrScale = d3.scaleLinear().domain([0, 200]).range(colorScale.domain());
+    const corrScale = d3.scaleLinear().domain([-200, 200]).range(colorScale.domain());
     const positionScale = d3
       .scaleLinear()
       .domain([0, 200])
@@ -222,8 +222,8 @@ class ScatterPlotMatrixChild extends Component {
     const { data } = this.props;
     if (data.length === 0) return;
 
-    const width = 800;
-    const height = 800;
+    const width = 600;
+    const height = 600;
     const padding = 80;
 
     const svg = d3.select(this.svgRef.current);
