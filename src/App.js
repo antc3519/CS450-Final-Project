@@ -49,7 +49,7 @@ class App extends Component {
       .filter((desc) => desc !== undefined && desc !== "")
       .join(", ");
 
-    this.setState({ allActors, allDirectors, allDescriptions});
+    this.setState({ allActors, allDirectors, allDescriptions });
   };
 
   handleSliderChange = (val) => {
@@ -57,17 +57,17 @@ class App extends Component {
   };
 
   set_data = (uploadedData) => {
-    this.setState({data: uploadedData}, () => {
+    this.setState({ data: uploadedData }, () => {
       this.updateFilteredData();
       this.concatenateNames();
-    })
-  }
+    });
+  };
 
   render() {
     const { filteredData, allActors, allDirectors, allDescriptions, data } = this.state;
     return (
       <div>
-      <FileUpload set_data={this.set_data}></FileUpload>
+        <FileUpload set_data={this.set_data}></FileUpload>
         <div
           style={{
             display: "flex",
@@ -77,10 +77,12 @@ class App extends Component {
             alignItems: "flex-start",
           }}
         >
-          <div style={{height: "90vh", display: "flex", flexDirection: "column", justifyContent: "center"}}>
-            <h3 style={{transform: "rotate(-90deg) translate(50%, 0)", textAlign: "center"}}>Scatter Plot Matrix</h3>
+          <div style={{ height: "90vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h3 style={{ transform: "rotate(-90deg) translate(50%, 0)", textAlign: "center" }}>Scatter Plot Matrix</h3>
           </div>
-          <div id = "scplotdiv"
+          
+          <div
+            id="scplotdiv"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -91,30 +93,31 @@ class App extends Component {
               height: "100%",
             }}
           >
-            
-            <ScatterPlotMatrixChild data={filteredData} />
-            <div style={{ marginTop: "5px", flexShrink: 0 }}>
-              <h3 style = {{textAlign: "center", margin:0}}>Filter by Year</h3>
-              <svg className="slider-range" width="500" height="100" transform="translate(80,0)"></svg>
+            <div style={{ marginBottom: "5px" }}>
+              <h3 style={{ margin: 0 }}>Filter by Year</h3>
+              <svg className="slider-range" width="500" height="70"></svg>
             </div>
+  
+            <ScatterPlotMatrixChild data={filteredData} />
           </div>
+  
           <div
             style={{
               textAlign: "center",
               width: "50%",
-              height: "100%"
+              height: "100%",
             }}
           >
             <h2>Movie Keyword Wordcloud</h2>
-            <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions}/>
-            <h2 style={{margin: 0}}>Average Metascore by Genre</h2>
-            <BarChartChild data={data}/>
+            <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions} />
+            <h2 style={{ margin: 0 }}>Average Metascore by Genre</h2>
+            <BarChartChild data={data} />
           </div>
         </div>
       </div>
-      
     );
   }
+  
 
   componentDidUpdate() {
     const { data, yearRange } = this.state;
