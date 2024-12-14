@@ -29,18 +29,17 @@ class ScatterPlotMatrixChild extends Component {
         : this.createScatterPlotMatrix();
     }
   }
-
   createScatterPlotMatrix = () => {
     const { data } = this.props;
     if (data.length === 0) return;
-
+  
     const features = ["Rank", "Votes", "Rating", "Revenue (Millions)"];
     const size = 150;
     const padding = 20;
     const margin = { top: 20, right: 20, bottom: 50, left: 0 };
     const width = features.length * size + margin.left + margin.right;
     const height = features.length * size + margin.top + margin.bottom;
-    
+  
     const svg = d3.select(this.svgRef.current);
     svg.selectAll("*").remove();
     svg
@@ -49,7 +48,7 @@ class ScatterPlotMatrixChild extends Component {
       .style("padding", "0 100px 0 50px")
       .style("display", "block")
       .style("overflow", "visible");
-
+  
     const scales = {};
     features.forEach((feature) => {
       scales[feature] = d3
@@ -57,9 +56,9 @@ class ScatterPlotMatrixChild extends Component {
         .domain(d3.extent(data, (d) => d[feature]))
         .range([size - padding, padding]);
     });
-
+  
     const colorScale = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
-
+  
     features.forEach((yFeature, rowIndex) => {
       features.forEach((xFeature, colIndex) => {
         const g = svg
@@ -70,14 +69,14 @@ class ScatterPlotMatrixChild extends Component {
               rowIndex * size + margin.top
             })`
           );
-
+  
         let sumX = 0,
           sumY = 0,
           sumXY = 0,
           sumX2 = 0,
           sumY2 = 0,
           n = 0;
-
+  
         data.forEach((d) => {
           const x = d[xFeature];
           const y = d[yFeature];
@@ -88,14 +87,14 @@ class ScatterPlotMatrixChild extends Component {
           sumY2 += y * y;
           n += 1;
         });
-
+  
         const numerator = n * sumXY - sumX * sumY;
         const denominator = Math.sqrt(
           (n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)
         );
-
+  
         const correlation = denominator === 0 ? 0 : numerator / denominator;
-
+  
         g.append("rect")
           .attr("width", size)
           .attr("height", size)
@@ -104,7 +103,7 @@ class ScatterPlotMatrixChild extends Component {
           .on("click", () => {
             this.setState({ zoomedIn: true, xFeature, yFeature });
           });
-
+  
         if (xFeature !== yFeature) {
           g.append("text")
             .attr("x", size / 2)
@@ -114,7 +113,7 @@ class ScatterPlotMatrixChild extends Component {
             .text(`${yFeature} vs ${xFeature}`);
         }
       });
-
+  
       svg
         .append("text")
         .attr(
@@ -126,7 +125,7 @@ class ScatterPlotMatrixChild extends Component {
         .style("text-anchor", "middle")
         .text(yFeature);
     });
-
+  
     features.forEach((xFeature, colIndex) => {
       svg
         .append("text")
@@ -138,56 +137,52 @@ class ScatterPlotMatrixChild extends Component {
         )
         .style("text-anchor", "middle")
         .text(xFeature);
-
     });
-    this.createCorrelationLegend(svg, width, height, margin);
-
-  };
-
-  createCorrelationLegend = (svg, width, height, margin) => {
-    const colorScale = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
   
-    // Position the legend next to the scatter plot matrix
-    const legendHeight = height - margin.top - margin.bottom;
-    const legendWidth = 20;
-    const legendMargin = 10;
+    // Legend Code Integration
+    const corrScale = d3.scaleLinear().domain([-200, 200]).range(colorScale.domain());
+    const positionScale = d3
+      .scaleLinear()
+      .domain([0, 200])
+      .range([70, height - margin.top - margin.bottom - 70]);
   
-    const legend = svg.append("g")
-      .attr("transform", `translate(${width + legendMargin}, ${margin.top})`);
+    const positionRects = Array.from({ length: 200 }, (_, i) => i);
   
-    // Create a gradient for the legend
-    const legendScale = d3.scaleLinear().domain([-1, 1]).range([legendHeight, 0]);
-    const gradient = svg.append("defs")
-      .append("linearGradient")
-      .attr("id", "correlation-gradient")
-      .attr("x1", "0%")
-      .attr("x2", "0%")
-      .attr("y1", "100%")
-      .attr("y2", "0%");
+    const legendSvg = svg
+      .selectAll(".myclass")
+      .data([0])
+      .join("g")
+      .attr("class", "myclass")
+      .attr("transform", `translate(${width - margin.right - 120}, ${margin.top})`);
   
-    gradient.append("stop").attr("offset", "0%").attr("stop-color", d3.interpolateRdBu(1));
-    gradient.append("stop").attr("offset", "50%").attr("stop-color", d3.interpolateRdBu(0));
-    gradient.append("stop").attr("offset", "100%").attr("stop-color", d3.interpolateRdBu(-1));
+    // Create the color scale rectangles
+    legendSvg
+      .selectAll("rect")
+      .data(positionRects)
+      .join("rect")
+      .attr("x", 200)
+      .attr("y", (d) => positionScale(d))
+      .attr("width", 20) // Adjusted width for a thinner legend
+      .attr("height", positionScale(1) - positionScale(0))
+      .style("fill", (d) => d3.interpolateRdBu(corrScale(d)));
   
-    legend.append("rect")
-      .attr("width", legendWidth)
-      .attr("height", legendHeight)
-      .style("fill", "url(#correlation-gradient)");
-  
-    // Add axis for the legend
-    const legendAxis = d3.axisRight(legendScale).ticks(5);
-    legend.append("g").attr("transform", `translate(${legendWidth}, 0)`).call(legendAxis);
-  
-    // Add label
-    legend.append("text")
-      .attr("x", legendWidth / 2)
-      .attr("y", -10)
-      .style("text-anchor", "middle")
-      .text("Correlation");
+    // Add the text for the legend
+    legendSvg
+      .selectAll(".corr_text")
+      .data([0])
+      .join("text")
+      .attr("class", "corr_text")
+      .text("Correlation Color Scale")
+      .attr("x", 40)
+      .attr("y", height / 2)
+      .style("transform", "translate(-100px, 325px) rotate(-90deg)")
+      .style("text-anchor", "middle");
   };
   
 
 
+  
+  
   createDetailedScatterPlot = (xFeature, yFeature) => {
     const { data } = this.props;
     if (data.length === 0) return;
