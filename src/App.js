@@ -71,12 +71,12 @@ class App extends Component {
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between", // Space out child divs evenly
-            alignItems: "center", // Center align vertically
-            height: "90vh", // Remaining viewport height after FileUpload
-            width: "100%", // Full width of the viewport
-            overflow: "hidden", // Avoid scrolling
-            padding: "0 1vw", // Add a little padding for spacing
+            justifyContent: "space-between",
+            alignItems: "center",
+            height: "90vh",
+            width: "100%",
+            overflow: "auto",
+            padding: "0 1vw",
             boxSizing: "border-box",
           }}
         > 
@@ -87,6 +87,7 @@ class App extends Component {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "auto",
               flexGrow: 1,
               width: "50%",
               height: "100%",
@@ -115,22 +116,24 @@ class App extends Component {
           <div
             style={{
               textAlign: "center",
-              width: "50%", // Use 50% of available space
-              height: "100%", // Full height
+              width: "50%",
+              height: "100%",
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-around", // Space out children evenly
+              justifyContent: "space-around",
             }}
           >
             <h2>Movie Keyword Wordcloud</h2>
             <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions} style={{
               width: "100%",
-              height: "45%", // Take up less than half of the parent div
+              height: "45%",
+              overflow: "auto",
             }}/>
             <h2 style={{ margin: 0 }}>Average Metascore by Genre</h2>
             <BarChartChild data={data} style={{
               width: "100%",
-              height: "45%", // Take up less than half of the parent div
+              height: "45%",
+              overflow: "auto",
             }}/>
           </div>
         </div>
