@@ -66,52 +66,72 @@ class App extends Component {
   render() {
     const { filteredData, allActors, allDirectors, allDescriptions, data } = this.state;
     return (
-      <div>
+      <div style={{ height: "100vh", width: "100vw", overflow: "hidden", display: "flex", flexDirection: "column", boxSizing: "border-box"}}>
         <FileUpload set_data={this.set_data}></FileUpload>
         <div
           style={{
             display: "flex",
-            justifyContent: "space-around",
-            height: "90vh",
-            overflow: "hidden",
-            alignItems: "flex-start",
+            justifyContent: "space-between", // Space out child divs evenly
+            alignItems: "center", // Center align vertically
+            height: "90vh", // Remaining viewport height after FileUpload
+            width: "100%", // Full width of the viewport
+            overflow: "hidden", // Avoid scrolling
+            padding: "0 1vw", // Add a little padding for spacing
+            boxSizing: "border-box",
           }}
-        >
-          <div style={{ height: "90vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h3 style={{ transform: "rotate(-90deg) translate(50%, 0)", textAlign: "center" }}>Scatter Plot Matrix</h3>
-          </div>
-          
+        > 
           <div
             id="scplotdiv"
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
               flexGrow: 1,
-              overflow: "auto",
-              width: "55%",
+              width: "50%",
               height: "100%",
             }}
           >
-            <div style={{ marginBottom: "5px" }}>
+            <h2 style={{textAlign: "center" }}>Scatter Plot Matrix</h2>
+            <div style={{
+                marginBottom: "5px",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <h3 style={{ margin: 0 }}>Filter by Year</h3>
-              <svg className="slider-range" width="500" height="70"></svg>
+              <svg className="slider-range" style={{ width: "90%", maxWidth: "500px", height: "70px" }}></svg>
             </div>
   
-            <ScatterPlotMatrixChild data={filteredData} />
+            <ScatterPlotMatrixChild data={filteredData} style={{
+              width: "100%",
+              height: "60%",
+            }}/>
           </div>
   
           <div
             style={{
               textAlign: "center",
-              width: "50%",
-              height: "100%",
+              width: "50%", // Use 50% of available space
+              height: "100%", // Full height
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-around", // Space out children evenly
             }}
           >
             <h2>Movie Keyword Wordcloud</h2>
-            <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions} />
+            <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions} style={{
+              width: "100%",
+              height: "45%", // Take up less than half of the parent div
+            }}/>
             <h2 style={{ margin: 0 }}>Average Metascore by Genre</h2>
-            <BarChartChild data={data} />
+            <BarChartChild data={data} style={{
+              width: "100%",
+              height: "45%", // Take up less than half of the parent div
+            }}/>
           </div>
         </div>
       </div>
