@@ -5,7 +5,6 @@ class ScatterPlotMatrixChild extends Component {
   constructor(props) {
     super(props);
     this.svgRef = React.createRef();
-    this.zoomPlotRef = React.createRef();
     this.state = {
       zoomedIn: false,
       xFeature: null,
@@ -41,7 +40,7 @@ class ScatterPlotMatrixChild extends Component {
     const margin = { top: 20, right: 20, bottom: 50, left: 0 };
     const width = features.length * size + margin.left + margin.right;
     const height = features.length * size + margin.top + margin.bottom;
-
+    
     const svg = d3.select(this.svgRef.current);
     svg.selectAll("*").remove();
     svg
@@ -59,10 +58,7 @@ class ScatterPlotMatrixChild extends Component {
         .range([size - padding, padding]);
     });
 
-    const colorScale = d3
-    .scaleSequential(d3.interpolateRdBu)
-    .domain([-1, 1]); // Correlation range
-
+    const colorScale = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
 
     features.forEach((yFeature, rowIndex) => {
       features.forEach((xFeature, colIndex) => {
@@ -75,17 +71,12 @@ class ScatterPlotMatrixChild extends Component {
             })`
           );
 
-        // INCREMENTAL CORRELATION FORMULA TAKEN
-        // cannot compute correlation using all points - this is too slow and inefficient
-        // so we need one that given correlation of n points and we have (n + 1)th point
-        // we don't have to recalculate to avoid repetition
-
-        var sumX = 0,
-        sumY = 0,
-        sumXY = 0,
-        sumX2 = 0,
-        sumY2 = 0,
-        n = 0;
+        let sumX = 0,
+          sumY = 0,
+          sumXY = 0,
+          sumX2 = 0,
+          sumY2 = 0,
+          n = 0;
 
         data.forEach((d) => {
           const x = d[xFeature];
@@ -113,16 +104,6 @@ class ScatterPlotMatrixChild extends Component {
           .on("click", () => {
             this.setState({ zoomedIn: true, xFeature, yFeature });
           });
-
-        g.selectAll("circle")
-          .data(data)
-          .enter()
-          .append("circle")
-          .attr("cx", (d) => 150 - scales[xFeature](d[xFeature]))
-          .attr("cy", (d) => scales[yFeature](d[yFeature]))
-          .attr("r", 3)
-          .attr("fill", "steelblue")
-          .attr("opacity", 0.7);
 
         if (xFeature !== yFeature) {
           g.append("text")
@@ -157,66 +138,55 @@ class ScatterPlotMatrixChild extends Component {
         )
         .style("text-anchor", "middle")
         .text(xFeature);
+
     });
-    
-    const positionRects = Array.from({length:200}, (_, i) => i)
-/*
-    const corrScale = d3.scaleLinear().domain([0, 200]).range(colorScale.domain())
+    this.createCorrelationLegend(svg, width, height, margin);
 
-    const positionScale = d3.scaleLinear().domain([0, 200]).range([70, height - margin.top - margin.bottom - 70])
-
-    const legendSvg = svg.selectAll(".myclass").data([0]).join("g").attr("class", "myclass")
-    .attr('transform', `translate(${width - margin.right + 10}, ${margin.top})`)
-
-    console.log("corrscale domain", corrScale.domain(), corrScale.range())
-    console.log("posscale domain", positionScale.domain(), positionScale.range())
-
-    legendSvg.selectAll("rect").data(positionRects).join("rect").attr("x", 0)
-    .attr("y", (d) =>positionScale(d))
-    .attr("width", 100).attr("height", positionScale(1) - positionScale(0))
-    .style("fill", d => d3.interpolateRdBu(corrScale(d)))
-
-    legendSvg.selectAll(".corr_text").data([0]).join("text").attr("class", 'corr_text').text("Correlation Color Scale")
-    .attr("x", 0).attr("y", height/2).attr('transform',`rotate(-90)`)
-    */
-
-    const corrScale = d3.scaleLinear().domain([-200, 200]).range(colorScale.domain());
-    const positionScale = d3
-      .scaleLinear()
-      .domain([0, 200])
-      .range([70, height - margin.top - margin.bottom - 70]);
-    
-    const legendSvg = svg
-      .selectAll(".myclass")
-      .data([0])
-      .join("g")
-      .attr("class", "myclass")
-      .attr("transform", `translate(${width - margin.right - 120}, ${margin.top})`); // Adjusted to fit 100px width
-    
-    // Create the color scale rectangles
-    legendSvg
-      .selectAll("rect")
-      .data(positionRects)
-      .join("rect")
-      .attr("x", 120) // Align horizontally
-      .attr("y", (d) => positionScale(d)) // Use position scale for vertical placement
-      .attr("width", 100) // Set the rectangle width
-      .attr("height", positionScale(1) - positionScale(0)) // Set the rectangle height
-      .style("fill", (d) => d3.interpolateRdBu(corrScale(d))); // Apply color
-    
-    // Add the text for the legend
-    legendSvg
-      .selectAll(".corr_text")
-      .data([0])
-      .join("text")
-      .attr("class", "corr_text")
-      .text("Correlation Color Scale")
-      .attr("x", 40) // Translate text horizontally
-      .attr("y", height / 2) // Center text vertically
-      .style("transform", "translate(-100px, 325px) rotate(-90deg)") // Rotate text in place
-      .style("text-anchor", "middle"); // Align text center
-    
   };
+
+  createCorrelationLegend = (svg, width, height, margin) => {
+    const colorScale = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
+  
+    // Position the legend next to the scatter plot matrix
+    const legendHeight = height - margin.top - margin.bottom;
+    const legendWidth = 20;
+    const legendMargin = 10;
+  
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width + legendMargin}, ${margin.top})`);
+  
+    // Create a gradient for the legend
+    const legendScale = d3.scaleLinear().domain([-1, 1]).range([legendHeight, 0]);
+    const gradient = svg.append("defs")
+      .append("linearGradient")
+      .attr("id", "correlation-gradient")
+      .attr("x1", "0%")
+      .attr("x2", "0%")
+      .attr("y1", "100%")
+      .attr("y2", "0%");
+  
+    gradient.append("stop").attr("offset", "0%").attr("stop-color", d3.interpolateRdBu(1));
+    gradient.append("stop").attr("offset", "50%").attr("stop-color", d3.interpolateRdBu(0));
+    gradient.append("stop").attr("offset", "100%").attr("stop-color", d3.interpolateRdBu(-1));
+  
+    legend.append("rect")
+      .attr("width", legendWidth)
+      .attr("height", legendHeight)
+      .style("fill", "url(#correlation-gradient)");
+  
+    // Add axis for the legend
+    const legendAxis = d3.axisRight(legendScale).ticks(5);
+    legend.append("g").attr("transform", `translate(${legendWidth}, 0)`).call(legendAxis);
+  
+    // Add label
+    legend.append("text")
+      .attr("x", legendWidth / 2)
+      .attr("y", -10)
+      .style("text-anchor", "middle")
+      .text("Correlation");
+  };
+  
+
 
   createDetailedScatterPlot = (xFeature, yFeature) => {
     const { data } = this.props;
