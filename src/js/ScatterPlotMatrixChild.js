@@ -102,7 +102,7 @@ class ScatterPlotMatrixChild extends Component {
         g.append("rect")
           .attr("width", size)
           .attr("height", size)
-          .attr("fill", colorScale(correlation))
+          .attr("fill", colorScale(-correlation))
           .attr("opacity", 0.5)
           .on("click", () => {
             this.setState({ zoomedIn: true, xFeature, yFeature });
@@ -149,7 +149,7 @@ class ScatterPlotMatrixChild extends Component {
         .text(xFeature);
     });
   
-    // Legend Code Integration
+    
     const corrScale = d3.scaleLinear().domain([-200, 200]).range(colorScale.domain());
     const positionScale = d3
       .scaleLinear()
@@ -165,25 +165,25 @@ class ScatterPlotMatrixChild extends Component {
       .attr("class", "myclass")
       .attr("transform", `translate(${margin.left + size*4}, ${0})`);
   
-    // Create the color scale rectangles
+    
     legendSvg
       .selectAll("rect")
       .data(positionRects)
       .join("rect")
       .attr("x", 40)
       .attr("y", (d) => positionScale(d))
-      .attr("width", 20) // Adjusted width for a thinner legend
+      .attr("width", 20)
       .attr("height", positionScale(1) - positionScale(0))
-      .style("fill", (d) => d3.interpolateRdBu(1-corrScale(d)));
-    // Add the text for the legend
+      .style("fill", (d) => d3.interpolateRdBu(corrScale(d)));
+    
     legendSvg
       .selectAll(".corr_text")
       .data([0])
       .join("text")
       .attr("class", "corr_text")
       .text("Correlation Color Scale")
-      .attr("x", 0)
-      .attr("y", height / 2)
+      .attr("x", -60)
+      .attr("y", 300)
       .style("transform", "translate(-220px, 200px) rotate(-90deg)")
       .style("text-anchor", "middle");
   };
@@ -238,7 +238,7 @@ class ScatterPlotMatrixChild extends Component {
         d3.select("#tooltip").style("display", "none");
       });
     
-    //x-axis
+    
     svg.append("g")
       .attr("transform", `translate(0,${height - padding})`)
       .call(d3.axisBottom(zoomedXScale).tickFormat(d3.format("~s")));
@@ -249,7 +249,7 @@ class ScatterPlotMatrixChild extends Component {
       .style("text-anchor", "middle")
       .text(xFeature);
 
-    //y-axis
+    
     svg.append("g")
       .attr("transform", `translate(${padding},0)`)
       .call(d3.axisLeft(zoomedYScale).tickFormat(d3.format("~s")));

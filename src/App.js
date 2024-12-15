@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import * as d3 from "d3";
-import imdbDataset from "./imdb_movie_dataset.csv";
 import { sliderBottom } from "d3-simple-slider";
 import FileUpload from "./js/FileUpload";
 import ScatterPlotMatrixChild from "./js/ScatterPlotMatrixChild";
