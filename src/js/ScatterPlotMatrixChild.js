@@ -174,8 +174,7 @@ class ScatterPlotMatrixChild extends Component {
       .attr("y", (d) => positionScale(d))
       .attr("width", 20) // Adjusted width for a thinner legend
       .attr("height", positionScale(1) - positionScale(0))
-      .style("fill", (d) => d3.interpolateRdBu(corrScale(d)));
-  
+      .style("fill", (d) => d3.interpolateRdBu(1-corrScale(d)));
     // Add the text for the legend
     legendSvg
       .selectAll(".corr_text")
@@ -185,7 +184,7 @@ class ScatterPlotMatrixChild extends Component {
       .text("Correlation Color Scale")
       .attr("x", 0)
       .attr("y", height / 2)
-      .style("transform", "translate(-200px, 200px) rotate(-90deg)")
+      .style("transform", "translate(-220px, 200px) rotate(-90deg)")
       .style("text-anchor", "middle");
   };
   
@@ -206,7 +205,6 @@ class ScatterPlotMatrixChild extends Component {
       .attr("width", width)
       .attr("height", height)
       .style("background", "white")
-      .style("border", "1px solid gray")
       .style("position", "relative");
 
     const zoomedXScale = d3.scaleLinear()
