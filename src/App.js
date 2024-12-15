@@ -17,7 +17,23 @@ class App extends Component {
       allActors: "",
       allDirectors: "",
       allDescriptions: "",
+      width: window.innerWidth,
     };
+    this.updateWindowSize = this.updateWindowSize.bind(this);
+  }
+
+  updateWindowSize() {
+    this.setState({
+        width: window.innerWidth,
+    });
+  }
+
+  componentDidMount() {
+    window.addEventListener('resize', this.updateWindowSize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateWindowSize);
   }
 
   updateFilteredData = () => {
@@ -86,14 +102,14 @@ class App extends Component {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: "space-around",
               overflow: "auto",
               flexGrow: 1,
               width: "50%",
               height: "100%",
             }}
           >
-            <h2 style={{textAlign: "center" }}>Scatter Plot Matrix</h2>
+            <h2 style={{textAlign: "center", margin:0}}>Scatter Plot Matrix</h2>
             <div style={{
                 marginBottom: "5px",
                 textAlign: "center",
@@ -104,7 +120,7 @@ class App extends Component {
               }}
             >
               <h3 style={{ margin: 0 }}>Filter by Year</h3>
-              <svg className="slider-range" style={{ width: "90%", maxWidth: "500px", height: "70px" }}></svg>
+              <svg className="slider-range" style={{ width: "120%", maxWidth: "500px", height: "70px" }}></svg>
             </div>
   
             <ScatterPlotMatrixChild data={filteredData} style={{
@@ -123,7 +139,7 @@ class App extends Component {
               justifyContent: "space-around",
             }}
           >
-            <h2>Movie Keyword Wordcloud</h2>
+            <h2 style={{margin:0}}>Movie Keyword Wordcloud</h2>
             <WordCloudChild allActors={allActors} allDirectors={allDirectors} allDescriptions={allDescriptions} style={{
               width: "100%",
               height: "45%",

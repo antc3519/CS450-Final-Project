@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import * as d3 from "d3";
 
 class BarChartChild extends Component {
+
   componentDidUpdate() {
     const data = this.props.data;
     const genreData = {}
@@ -25,13 +26,14 @@ class BarChartChild extends Component {
     const maxAverage = d3.max(Object.values(genreAverages));
 
     const margin = { top: 20, right: 30, bottom: 50, left: 40 },
-      width = 800,
-      height = 400,
-      innerWidth = width - margin.left - margin.right,
-      innerHeight = height - margin.top - margin.bottom;
+    width = d3.select(".barchart").node().getBoundingClientRect().width,
+    height = d3.select(".barchart").node().getBoundingClientRect().height,
+    innerWidth = width - margin.left - margin.right,
+    innerHeight = height - margin.top - margin.bottom;
     
     const svg = d3.select('#mysvg').attr('width', width).attr('height', height)
-    const g = svg.select('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    svg.select('g').remove()
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
     var xScale = d3.scaleBand().domain(Object.keys(genreData)).range([0, innerWidth]).padding(0.1);
     var yScale = d3.scaleLinear().domain([0, maxAverage]).range([innerHeight, 0]);
@@ -76,8 +78,8 @@ class BarChartChild extends Component {
 
   render() {
     return (
-        <div className='barchart'>
-            <svg id="mysvg" width="700" height="400">
+        <div className='barchart' style={{width:"100%", height:"40%"}}>
+            <svg id="mysvg">
                 <g className="container"></g>
             </svg>
         </div>

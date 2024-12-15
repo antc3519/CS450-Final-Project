@@ -78,7 +78,7 @@ class WordCloudChild extends Component {
 
   draw = (words) => {
     var width = d3.select("#cloudContainer").node().getBoundingClientRect().width - 40
-    var height = d3.select("#cloudContainer").node().getBoundingClientRect().height - 100
+    var height = d3.select("#cloudContainer").node().getBoundingClientRect().height - 50
     const svg = d3.select(this.refs.wordCloud)
       .append('svg')
       .attr('width', width)
@@ -118,7 +118,7 @@ class WordCloudChild extends Component {
 
   render() {
     return (
-      <div style={{ width: "100%", height:"30%"}} id="cloudContainer">
+      <div style={{ width: "100%", height:"35%"}} id="cloudContainer">
         
         <div style={{display:"flex",justifyContent:"center"}}>
           <label>

@@ -10,6 +10,7 @@ class ScatterPlotMatrixChild extends Component {
       xFeature: null,
       yFeature: null,
     };
+    window.addEventListener('resize', this.createScatterPlotMatrix);
   }
 
   componentDidMount() {
@@ -34,18 +35,21 @@ class ScatterPlotMatrixChild extends Component {
     if (data.length === 0) return;
   
     const features = ["Rank", "Votes", "Rating", "Revenue (Millions)"];
-    const size = 150;
-    const padding = 20;
-    const margin = { top: 20, right: 20, bottom: 50, left: 0 };
-    const width = features.length * size + margin.left + margin.right;
-    const height = features.length * size + margin.top + margin.bottom;
-  
+    const padding = 0;
+    const margin = { top: 20, right: 0, bottom: 50, left: 20 };
+    const width = d3.select("#scatterContainer").node().getBoundingClientRect().width;
+    const height = d3.select("#scatterContainer").node().getBoundingClientRect().height;
+    var size = width / 5;
+    if (height < width) {
+      size = height / 5;
+      margin.left = (width - height) / 2
+    }
+      
     const svg = d3.select(this.svgRef.current);
     svg.selectAll("*").remove();
     svg
       .attr("width", width)
       .attr("height", height)
-      .style("padding", "0 100px 0 50px")
       .style("display", "block")
       .style("overflow", "visible");
   
@@ -107,10 +111,10 @@ class ScatterPlotMatrixChild extends Component {
         if (xFeature !== yFeature) {
           g.append("text")
             .attr("x", size / 2)
-            .attr("y", 145)
+            .attr("y", size/2)
             .style("text-anchor", "middle")
             .style("font-size", "10px")
-            .text(`${yFeature} vs ${xFeature}`);
+            .text(`${yFeature.substring(0,7)} vs ${xFeature.substring(0,7)}`);
         }
       });
   
@@ -132,7 +136,7 @@ class ScatterPlotMatrixChild extends Component {
         .attr(
           "transform",
           `translate(${colIndex * size + margin.left + size / 2}, ${
-            height - 15
+            size * 4 + 40 + margin.top
           })`
         )
         .style("text-anchor", "middle")
@@ -153,14 +157,14 @@ class ScatterPlotMatrixChild extends Component {
       .data([0])
       .join("g")
       .attr("class", "myclass")
-      .attr("transform", `translate(${width - margin.right - 120}, ${margin.top})`);
+      .attr("transform", `translate(${margin.left + size*4}, ${0})`);
   
     // Create the color scale rectangles
     legendSvg
       .selectAll("rect")
       .data(positionRects)
       .join("rect")
-      .attr("x", 200)
+      .attr("x", 40)
       .attr("y", (d) => positionScale(d))
       .attr("width", 20) // Adjusted width for a thinner legend
       .attr("height", positionScale(1) - positionScale(0))
@@ -173,9 +177,9 @@ class ScatterPlotMatrixChild extends Component {
       .join("text")
       .attr("class", "corr_text")
       .text("Correlation Color Scale")
-      .attr("x", 40)
+      .attr("x", 0)
       .attr("y", height / 2)
-      .style("transform", "translate(-100px, 325px) rotate(-90deg)")
+      .style("transform", "translate(-200px, 200px) rotate(-90deg)")
       .style("text-anchor", "middle");
   };
   
@@ -186,10 +190,9 @@ class ScatterPlotMatrixChild extends Component {
   createDetailedScatterPlot = (xFeature, yFeature) => {
     const { data } = this.props;
     if (data.length === 0) return;
-
-    const width = 600;
-    const height = 600;
-    const padding = 80;
+    const width = d3.select("#scatterContainer").node().getBoundingClientRect().width;
+    const height = d3.select("#scatterContainer").node().getBoundingClientRect().height;
+    const padding = 0;
 
     const svg = d3.select(this.svgRef.current);
     svg.selectAll("*").remove();
@@ -268,7 +271,7 @@ class ScatterPlotMatrixChild extends Component {
 
   render() {
     return (
-      <div>
+      <div id="scatterContainer" style={{width:"90%", height:"75%"}}>
         <svg ref={this.svgRef}></svg>
         <div
           id="tooltip"
@@ -276,7 +279,6 @@ class ScatterPlotMatrixChild extends Component {
             position: "absolute",
             display: "none",
             background: "white",
-            border: "1px solid gray",
             padding: "5px",
             pointerEvents: "none",
           }}
