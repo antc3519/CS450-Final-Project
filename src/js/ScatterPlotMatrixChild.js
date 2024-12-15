@@ -115,6 +115,12 @@ class ScatterPlotMatrixChild extends Component {
             .style("text-anchor", "middle")
             .style("font-size", "10px")
             .text(`${yFeature.substring(0,7)} vs ${xFeature.substring(0,7)}`);
+          g.append("text")
+            .attr("x", size /2)
+            .attr("y", size / 2 + 20)
+            .style("text-anchor", "middle")
+            .style("font-size", "15px")
+            .text(correlation.toFixed(2))
         }
       });
   
@@ -192,7 +198,7 @@ class ScatterPlotMatrixChild extends Component {
     if (data.length === 0) return;
     const width = d3.select("#scatterContainer").node().getBoundingClientRect().width;
     const height = d3.select("#scatterContainer").node().getBoundingClientRect().height;
-    const padding = 0;
+    const padding = 60;
 
     const svg = d3.select(this.svgRef.current);
     svg.selectAll("*").remove();
